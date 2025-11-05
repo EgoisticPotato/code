@@ -56,8 +56,8 @@ void loop() {
   delay(80); // brief debounce/settle
 }
 -------------------------------------------------------------
-🔹 Q3. Control the on-board LED (pin 13) to blink in different patterns based on user input via Serial Monitor:
-        Mode 1 = 1s ON / 1s OFF, Mode 2 = 200ms ON / 200ms OFF, Mode 3 = Gradual ON duration from 100ms to 1000ms (reset, repeat).
+Q3. Control the on-board LED (pin 13) to blink in different patterns based on user input via Serial Monitor:
+    Mode 1 = 1s ON / 1s OFF, Mode 2 = 200ms ON / 200ms OFF, Mode 3 = Gradual ON duration from 100ms to 1000ms (reset, repeat).
 // CONNECTIONS:
 // USB only for Serial
 // Using onboard LED at D13
@@ -85,18 +85,22 @@ void loop() {
     userInput = Serial.read();       // Read the character
     if (userInput == '1') {
       mode = 1;
+      running = true;
       Serial.println("Mode 1 Selected: Standard Blink");
     }
     else if (userInput == '2') {
       mode = 2;
+      running = true;
       Serial.println("Mode 2 Selected: Fast Blink");
     }
     else if (userInput == '3') {
       mode = 3;
+      running = true;
       Serial.println("Mode 3 Selected: Gradual Blink");
     }
     else if (userInput == 'S' || userInput == 's') {
       mode = 0;
+      running = false;
       digitalWrite(ledPin, LOW);
       Serial.println("Blinking stopped. LED OFF.");
     }
@@ -105,55 +109,56 @@ void loop() {
     }
   }
 
-  // --- Execute Blinking Pattern ---
-  switch (mode) {
-    case 1: // Standard Blink
-      digitalWrite(ledPin, HIGH);
-      Serial.println("Mode 1: LED ON (1s)");
-      delay(1000);
-      digitalWrite(ledPin, LOW);
-      Serial.println("Mode 1: LED OFF (1s)");
-      delay(1000);
-      break;
-
-    case 2: // Fast Blink
-      digitalWrite(ledPin, HIGH);
-      Serial.println("Mode 2: LED ON (200ms)");
-      delay(200);
-      digitalWrite(ledPin, LOW);
-      Serial.println("Mode 2: LED OFF (200ms)");
-      delay(200);
-      break;
-
-    case 3: // Gradual Blink
-      for (int onTime = 100; onTime <= 1000 && mode == 3; onTime += 100) {
+  if (running){
+    switch (mode) {
+      case 1: // Standard Blink
         digitalWrite(ledPin, HIGH);
-        Serial.print("Mode 3: LED ON (");
-        Serial.print(onTime);
-        Serial.println(" ms)");
-        delay(onTime);
-
+        Serial.println("Mode 1: LED ON (1s)");
+        delay(1000);
         digitalWrite(ledPin, LOW);
-        Serial.println("Mode 3: LED OFF (200 ms)");
+        Serial.println("Mode 1: LED OFF (1s)");
+        delay(1000);
+        break;
+  
+      case 2: // Fast Blink
+        digitalWrite(ledPin, HIGH);
+        Serial.println("Mode 2: LED ON (200ms)");
         delay(200);
-
-        // Check for stop command during gradual loop
-        if (Serial.available() > 0) {
-          char temp = Serial.read();
-          if (temp == 'S' || temp == 's') {
-            mode = 0;
-            digitalWrite(ledPin, LOW);
-            Serial.println("Blinking stopped during Mode 3.");
-            break;
+        digitalWrite(ledPin, LOW);
+        Serial.println("Mode 2: LED OFF (200ms)");
+        delay(200);
+        break;
+  
+      case 3: // Gradual Blink
+        for (int onTime = 100; onTime <= 1000 && mode == 3; onTime += 100) {
+          digitalWrite(ledPin, HIGH);
+          Serial.print("Mode 3: LED ON (");
+          Serial.print(onTime);
+          Serial.println(" ms)");
+          delay(onTime);
+  
+          digitalWrite(ledPin, LOW);
+          Serial.println("Mode 3: LED OFF (200 ms)");
+          delay(200);
+  
+          // Check for stop command during gradual loop
+          if (Serial.available() > 0) {
+            char temp = Serial.read();
+            if (temp == 'S' || temp == 's') {
+              mode = 0;
+              digitalWrite(ledPin, LOW);
+              Serial.println("Blinking stopped during Mode 3.");
+              break;
+            }
           }
         }
-      }
-      break;
-
-    default:
-      // Mode = 0 (stopped) or invalid
-      digitalWrite(ledPin, LOW);
-      break;
+        break;
+  
+      default:
+        // Mode = 0 (stopped) or invalid
+        digitalWrite(ledPin, LOW);
+        break;
+    }
   }
 }
 ----------------------------------------------
