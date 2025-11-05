@@ -224,7 +224,6 @@ Q6. Read analog input from a potentiometer and determine whether the knob is rot
 
 const int potPin = A0;
 int currentValue = 0;
-int previousValue = 0;ing
 int threshold = 10;
 
 void setup() {
@@ -386,7 +385,7 @@ void setup() {
 void loop() {
   int adcValue = analogRead(analogPin);
   currentVoltage = adcValue * (5.0 / 1023.0);
-  diff = fabs(currentVoltage - previousVoltage);
+  diff = fabsf(currentVoltage - previousVoltage);
   // Determine rate of change
   if (diff > 0.5) {
     delayTime = 100;  // Rapid change → frequent readings
