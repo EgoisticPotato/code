@@ -62,37 +62,98 @@ void loop() {
 // USB only for Serial
 // Using onboard LED at D13
 
-const int LED_PIN = 13;
-int mode = 0;
+const int ledPin = 13;
+char userInput;
+int mode = 0;  
 
 void setup() {
-  pinMode(LED_PIN, OUTPUT);
+  pinMode(ledPin, OUTPUT);
   Serial.begin(9600);
-  Serial.println("Select Mode:");
-  Serial.println("1 - Standard (1s ON / 1s OFF)");
-  Serial.println("2 - Fast (200ms / 200ms)");
-  Serial.println("3 - Gradual ON (100ms..1000ms)");
+
+  Serial.println("=== LED Blink Controller ===");
+  Serial.println("Enter a mode:");
+  Serial.println("1 - Standard Blink (1s ON, 1s OFF)");
+  Serial.println("2 - Fast Blink (200ms ON, 200ms OFF)");
+  Serial.println("3 - Gradual Blink (100ms → 1000ms)");
+  Serial.println("S - Stop Blinking");
+  Serial.println("=============================");
 }
 
 void loop() {
-  if (Serial.available()) {
-    mode = Serial.parseInt(); // expects 1/2/3
+  // --- Read User Input ---
+  if (Serial.available() > 0) {
+    userInput = Serial.read();       // Read the character
+    if (userInput == '1') {
+      mode = 1;
+      Serial.println("Mode 1 Selected: Standard Blink");
+    }
+    else if (userInput == '2') {
+      mode = 2;
+      Serial.println("Mode 2 Selected: Fast Blink");
+    }
+    else if (userInput == '3') {
+      mode = 3;
+      Serial.println("Mode 3 Selected: Gradual Blink");
+    }
+    else if (userInput == 'S' || userInput == 's') {
+      mode = 0;
+      digitalWrite(ledPin, LOW);
+      Serial.println("Blinking stopped. LED OFF.");
+    }
+    else {
+      Serial.println("Invalid input! Enter 1, 2, 3, or S.");
+    }
   }
 
-  if (mode == 1) {
-    digitalWrite(LED_PIN, HIGH); delay(1000);
-    digitalWrite(LED_PIN, LOW ); delay(1000);
-  } else if (mode == 2) {
-    digitalWrite(LED_PIN, HIGH); delay(200);
-    digitalWrite(LED_PIN, LOW ); delay(200);
-  } else if (mode == 3) {
-    for (int t = 100; t <= 1000; t += 100) {
-      digitalWrite(LED_PIN, HIGH); delay(t);
-      digitalWrite(LED_PIN, LOW ); delay(200);
-    }
-  } else {
-    // idle if mode not chosen
-    delay(50);
+  // --- Execute Blinking Pattern ---
+  switch (mode) {
+    case 1: // Standard Blink
+      digitalWrite(ledPin, HIGH);
+      Serial.println("Mode 1: LED ON (1s)");
+      delay(1000);
+      digitalWrite(ledPin, LOW);
+      Serial.println("Mode 1: LED OFF (1s)");
+      delay(1000);
+      break;
+
+    case 2: // Fast Blink
+      digitalWrite(ledPin, HIGH);
+      Serial.println("Mode 2: LED ON (200ms)");
+      delay(200);
+      digitalWrite(ledPin, LOW);
+      Serial.println("Mode 2: LED OFF (200ms)");
+      delay(200);
+      break;
+
+    case 3: // Gradual Blink
+      for (int onTime = 100; onTime <= 1000 && mode == 3; onTime += 100) {
+        digitalWrite(ledPin, HIGH);
+        Serial.print("Mode 3: LED ON (");
+        Serial.print(onTime);
+        Serial.println(" ms)");
+        delay(onTime);
+
+        digitalWrite(ledPin, LOW);
+        Serial.println("Mode 3: LED OFF (200 ms)");
+        delay(200);
+
+        // Check for stop command during gradual loop
+        if (Serial.available() > 0) {
+          char temp = Serial.read();
+          if (temp == 'S' || temp == 's') {
+            mode = 0;
+            digitalWrite(ledPin, LOW);
+            Serial.println("Blinking stopped during Mode 3.");
+            break;
+          }
+        }
+      }
+      break;
+
+    default:
+      // Mode = 0 (stopped) or invalid
+      digitalWrite(ledPin, LOW);
+      break;
   }
 }
 ----------------------------------------------
