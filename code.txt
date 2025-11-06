@@ -148,6 +148,17 @@ void loop() {
           digitalWrite(ledPin, LOW);
           Serial.println("Mode 3: LED OFF (200 ms)");
           delay(200);
+
+        if (Serial.available() > 0) {
+          char temp = Serial.read();
+          if (temp == 'S' || temp == 's') {
+            mode = 0;
+            digitalWrite(ledPin, LOW);
+            Serial.println("Blinking stopped during Mode 3.");
+            break;
+          }
+        }
+      }
   
       default:
         // Mode = 0 (stopped) or invalid
